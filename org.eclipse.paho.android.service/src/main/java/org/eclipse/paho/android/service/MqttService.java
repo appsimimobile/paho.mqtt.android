@@ -41,6 +41,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 /**
@@ -283,7 +285,8 @@ public class MqttService extends Service implements MqttTraceHandler {
     if (dataBundle != null) {
       callbackIntent.putExtras(dataBundle);
     }
-    LocalBroadcastManager.getInstance(this).sendBroadcast(callbackIntent);
+    callbackIntent.setPackage(this.getPackageName());
+    sendBroadcast(callbackIntent);
   }
 
   // The major API implementation follows :-
@@ -771,22 +774,21 @@ public class MqttService extends Service implements MqttTraceHandler {
 
   @SuppressWarnings("deprecation")
   private void registerBroadcastReceivers() {
-		if (networkConnectionMonitor == null) {
-			networkConnectionMonitor = new NetworkConnectionIntentReceiver();
-			registerReceiver(networkConnectionMonitor, new IntentFilter(
-					ConnectivityManager.CONNECTIVITY_ACTION));
-		}
+      if (networkConnectionMonitor == null) {
+          networkConnectionMonitor = new NetworkConnectionIntentReceiver();
+          ContextCompat.registerReceiver(this, networkConnectionMonitor, new IntentFilter(
+                  ConnectivityManager.CONNECTIVITY_ACTION),ContextCompat.RECEIVER_EXPORTED);
+      }
+        
 
 		if (Build.VERSION.SDK_INT < 14 /**Build.VERSION_CODES.ICE_CREAM_SANDWICH**/) {
 			// Support the old system for background data preferences
-			ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-			backgroundDataEnabled = cm.getBackgroundDataSetting();
-			if (backgroundDataPreferenceMonitor == null) {
-				backgroundDataPreferenceMonitor = new BackgroundDataPreferenceReceiver();
-				registerReceiver(
-						backgroundDataPreferenceMonitor,
-						new IntentFilter(
-								ConnectivityManager.ACTION_BACKGROUND_DATA_SETTING_CHANGED));
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            backgroundDataEnabled = cm.getBackgroundDataSetting();
+            if (backgroundDataPreferenceMonitor == null) {
+                backgroundDataPreferenceMonitor = new BackgroundDataPreferenceReceiver();
+                ContextCompat.registerReceiver(this, backgroundDataPreferenceMonitor, new IntentFilter(
+                        ConnectivityManager.ACTION_BACKGROUND_DATA_SETTING_CHANGED), ContextCompat.RECEIVER_EXPORTED);
 			}
 		}
   }
