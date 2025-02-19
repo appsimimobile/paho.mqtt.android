@@ -38,7 +38,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.util.Log;
 
 /**
  * <p>
@@ -596,7 +595,7 @@ class MqttConnection implements MqttCallbackExtended {
 				handleException(resultBundle, e);
 			}
 		}  else {
-			Log.i(TAG, "Client is not connected, so not sending message");
+			MqttLog.i(TAG, "Client is not connected, so not sending message");
 			resultBundle.putString(MqttServiceConstants.CALLBACK_ERROR_MESSAGE,
 					NOT_CONNECTED);
 			service.traceError(MqttServiceConstants.SEND_ACTION, NOT_CONNECTED);
@@ -844,7 +843,7 @@ class MqttConnection implements MqttCallbackExtended {
 			}
 			resultBundle.putString(
 					MqttServiceConstants.CALLBACK_EXCEPTION_STACK,
-					Log.getStackTraceString(why));
+					MqttLog.getStackTraceString(why));
 		}
 		service.callbackToActivity(clientHandle, Status.OK, resultBundle);
 		// client has lost connection no need for wake lock
@@ -1036,7 +1035,7 @@ class MqttConnection implements MqttCallbackExtended {
 
 		if(connectOptions.isAutomaticReconnect()){
 			//The Automatic reconnect functionality is enabled here
-			Log.i(TAG, "Requesting Automatic reconnect using New Java AC");
+			MqttLog.i(TAG, "Requesting Automatic reconnect using New Java AC");
 			final Bundle resultBundle = new Bundle();
 			resultBundle.putString(
 					MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN,
@@ -1048,7 +1047,7 @@ class MqttConnection implements MqttCallbackExtended {
 			try {
 				myClient.reconnect();
 			} catch (MqttException ex){
-				Log.e(TAG, "Exception occurred attempting to reconnect: " + ex.getMessage());
+				MqttLog.e(TAG, "Exception occurred attempting to reconnect: " + ex.getMessage());
 				setConnectingState(false);
 				handleException(resultBundle, ex);
 			}

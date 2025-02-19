@@ -13,14 +13,9 @@
 package org.eclipse.paho.android.service;
 
 import android.annotation.SuppressLint;
-import android.app.Service;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
-import android.util.Log;
-
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttPingSender;
@@ -39,7 +34,6 @@ class AlarmPingSender implements MqttPingSender {
     // Identifier for Intents, log messages, etc..
     private static final String TAG = "AlarmPingSender";
 
-    // TODO: Add log.
     private ClientComms comms;
     private final MqttService service;
     private volatile boolean hasStarted = false;
@@ -67,16 +61,14 @@ class AlarmPingSender implements MqttPingSender {
     @SuppressLint("UnspecifiedImmutableFlag")
     @Override
     public void start() {
-        String action = MqttServiceConstants.PING_SENDER
-                + comms.getClient().getClientId();
-        Log.d(TAG, "Register scheduledRunnable to MqttService" + action);
+        MqttLog.d(TAG, "Register scheduledRunnable to MqttService");
         schedule(comms.getKeepAlive());
         hasStarted = true;
     }
 
     @Override
     public void stop() {
-        Log.d(TAG, "Unregister scheduledRunnable to MqttService" + comms.getClient().getClientId());
+        MqttLog.d(TAG, "Unregister scheduledRunnable to MqttService");
         if (hasStarted) {
             quitSafelyThread();
             hasStarted = false;
@@ -85,7 +77,7 @@ class AlarmPingSender implements MqttPingSender {
 
     @Override
     public void schedule(long delayInMilliseconds) {
-        Log.e(TAG, "schedule delayInMilliseconds = " + delayInMilliseconds);
+        MqttLog.e(TAG, "schedule delayInMilliseconds = " + delayInMilliseconds);
 
         wakeupThread();
         mHandler.postDelayed(mRunnable, delayInMilliseconds);
@@ -104,7 +96,7 @@ class AlarmPingSender implements MqttPingSender {
     private void wakeupThread() {
         if (mThread.getState() == Thread.State.TIMED_WAITING) {
             mThread.getLooper().getThread().interrupt(); // wakeup the thread if it is in sleep.
-            Log.e(TAG, "Interrupt: handlerThread Id = " + mThread.getThreadId());
+            MqttLog.e(TAG, "Interrupt: handlerThread Id = " + mThread.getThreadId());
         }
     }
 
@@ -116,7 +108,7 @@ class AlarmPingSender implements MqttPingSender {
     };
 
     private synchronized void sendPing() {
-        Log.d(TAG, "Sending Ping at:" + System.currentTimeMillis());
+        MqttLog.d(TAG, "Sending Ping at:" + System.currentTimeMillis());
 
         // Assign new callback to token to execute code after PingResq
         // arrives. Get another wakelock even receiver already has one,
@@ -124,13 +116,13 @@ class AlarmPingSender implements MqttPingSender {
         comms.checkForActivity(new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
-                Log.d(TAG, "Success. " + System.currentTimeMillis());
+                MqttLog.d(TAG, "Success. " + System.currentTimeMillis());
             }
 
             @Override
             public void onFailure(IMqttToken asyncActionToken,
                                   Throwable exception) {
-                Log.d(TAG, "Failure. " + System.currentTimeMillis());
+                MqttLog.d(TAG, "Failure. " + System.currentTimeMillis());
             }
         });
     }
